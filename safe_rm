@@ -1,1 +1,106 @@
+#!/bin/bash
 
+#Check for non-existence of directory and create if it doesn't exist.
+        if ! [  -d $HOME/deleted ];
+        then
+                mkdir $HOME/deleted
+                touch $HOME/.restore.info
+        fi
+
+# If directory exists and .restore.info does not exist, create .restore.info
+        if [ -d $HOME/deleted ] && [ ! -e $HOME/.restore.info ]
+        then
+                touch $HOME/.restore.info
+        fi
+
+# File does not exist, displays error message if file supplied does not exist.
+# No fileName provided, displays error message if no file provided as an argument.
+# Directory name provided, displays error message if directory provided instead of file.
+if [ $# -eq 0 ]; then
+        echo "Error: Please provide the name of the file! Ex remove fileName"
+        exit
+elif [ -d "$1" ]; then
+        echo "Error: $1 is a directory!"
+        exit
+elif ! [ -e "$1" ]; then
+        echo "Error: File to be removed $1 does not exist!"
+        exit
+fi
+
+r_flag=true
+i_flag=false
+v_flag=false
+R_flag=false
+
+caseSelection(){
+        case $1 in
+                y|Y|Yes) $1 ;;
+                n|N|No) continue ;;
+                *) read -p "Error: Please enter a valid response! [y/n] " $1
+        esac }
+boleanFunction(){
+for i in $*
+        do
+                if [ "$noOptionFlag" = true ]; then
+                        echo "$i"
+                elif [ "$interactive" = true ] && [ "$verbose" = true ]; then
+                        if [ -s "$i" ]; then
+                                read -p "safe_rm: remove rmpty file "$i"? [y/n] " $1
+                        else
+                                read -p "safe_rm: remove file "$i"? [y/n] " $1
+                        fi
+                        caseSelection $1
+                elif [ "$verbose" = true ]; then
+                        echo "$i"
+                        echo "removed "$i" to the Recycle Bin."
+                fi
+                                                58         done }
+if [ "$1" = "safe_rm" ]; then
+        echo "Error: Trying to remove 'safe_rm'"
+        exit 1
+elif [ "$1" = "safe_rm_restore" ]; then
+        echo "Error: Trying to remove 'safe_rm_restore"
+        exit 1
+fi
+
+for i in $*
+        do
+                if [ -f  "$i" ]; then
+                        inode=$(ls -i $i | cut -d " " -f1)
+                        fileName=$(basename $i)
+                        newFileName=${fileName}_$inode
+                        fixedPaths=$(readlink -f $i)
+                        echo $newFileName:$fixedPaths >> $HOME/.restore.info
+                        mv -T $i ~/deleted/$newFileName
+#                       booleanFunction
+                        exit
+                fi
+        done
+
+while getopts ivrR opt
+
+do
+        case  $opt in
+                i)      i_flag=true
+                        r_flag=false ;;
+                v)      v_flag=true
+                        r_flag=false ;;
+                r|R)    R_flag=true ;;
+        esac
+done
+shift $(($OPTIND -1))
+
+#if [ "$" = true ]; then
+#       for i in $*
+#       do
+#               if [ -d $i ] || [ -e $i ]; then
+#                       dirList=$(find $i)
+#                       recursivefilepath=$( echo $dirList | cut -d " " -f1)
+#
+#               else
+#                       echo "Error: The folder/file $i does not exist!"
+#               fi
+#       done
+#else
+#       mainRemovalProcess $*
+#fi                                             
