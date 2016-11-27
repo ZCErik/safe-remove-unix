@@ -1,1 +1,35 @@
-
+ #!/bin/bash
+ 
+ #Restore file to original location.
+ 
+ if [ $# -eq 0 ]; then
+        echo "Error: Please provide the name of the file!"
+        exit
+ fi
+ 
+ for i in $*
+        do
+ 
+ matchEntries=$(grep -w ^$i $HOME/.restore.info)
+ deletedFileName=$(echo $matchEntries | cut -d":" -f1)
+ originalFilePath=$(echo $matchEntries | cut -d":" -f2)
+ recyclepath=$HOME/deleted
+ 
+                 if ! [ $matchEntries ]; then
+                         echo "Error: The file $i does not exist!"
+                         exit
+                 else
+                         echo "Do you want to overwrite? $originalFilePath "
+                         echo "If no, then the file name $i will be used instead of the original name. "
+                         read -p "[y/n]" response
+                                 case $response in
+                                         yes|Y|y)
+                                                 mv -T $recyclepath/$deletedFileName $originalFilePath
+                                                 grep -vw ^$i $HOME/.restore.info > $HOME/.rmtemp
+                                                 mv $HOME/.rmtemp $HOME/.restore.info
+                                                 ;;
+                                         no|N|n) exit ;;
+                                         *) "Error: Please Enter a valid option!" exit ;;
+                                 esac
+                 fi
+         done
